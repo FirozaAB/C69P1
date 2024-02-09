@@ -24,6 +24,11 @@
    that are ready to run but not actually running. */
 static struct list ready_list;
 
+/* List of sleeping threads. Threads are added through timer.timer_sleep() and removed
+through thread.thread_tick() */
+static struct list sleep_list;
+
+
 /* List of all processes.  Processes are added to this list
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
@@ -137,6 +142,43 @@ thread_tick (void)
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
+  
+  /* 
+     thread unblocking logic; sleeping threads are woken up if sleep counter is 0
+     then they are unblocked and removed
+     from sleep_list
+
+     otherwise, decrement sleep counter
+  */
+  struct list_elem *next = list_begin (&sleep_list);
+  struct list_elem *curr;
+  int64_t current_tick = timer_ticks(); 
+  
+  while (next != list_end (&sleep_list))
+    {
+	  struct thread *t = list_entry (next, struct thread, sleepelem);  
+	  curr = next;
+	  next = list_next (next);
+	  
+	  ASSERT (t->status == THREAD_BLOCKED);
+	  
+	  if (t->sleep_counter <= 0){
+			  thread_unblock(t);
+			  list_remove (curr);
+	  } else {
+      t->sleep_counter--;
+    }
+  }
+}
+
+/* Called by timer_sleep. Puts thread in sleep_list and changes state to blocked*/
+void
+thread_sleep (int64_t ticks)
+{
+  struct thread *curr = thread_current ();
+  curr->sleep_counter = ticks;
+  list_push_back (&sleep_list, &curr->sleepelem);
+  thread_block ();
 }
 
 /* Prints thread statistics. */

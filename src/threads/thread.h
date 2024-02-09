@@ -100,6 +100,11 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+    // Fields below were added for Project 1 alarm functionality
+    struct list_elem sleepelem;
+    int sleep_counter;
+    struct list locks;
+    struct lock *lock;
   };
 
 /* If false (default), use round-robin scheduler.
