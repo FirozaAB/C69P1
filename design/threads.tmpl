@@ -8,9 +8,7 @@
 
 >> Fill in the names and email addresses of your group members.
 
-FirstName LastName <email@domain.example>
-FirstName LastName <email@domain.example>
-FirstName LastName <email@domain.example>
+Uns Abbasi uns.abbasi@mail.utoronto.ca
 
 ---- PRELIMINARIES ----
 
@@ -30,10 +28,21 @@ FirstName LastName <email@domain.example>
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+    struct list_elem sleepelem; Index into sleep_list which contains sleeping threads
+    int sleep_counter; Represents number of ticks until 0 this thread will sleep. Initial
+    value is the argument passed into timer_sleep.
+
+
 ---- ALGORITHMS ----
 
 >> A2: Briefly describe what happens in a call to timer_sleep(),
 >> including the effects of the timer interrupt handler.
+
+Interrupts are disabled to prevent preemption and race conditions, and then the thread is placed
+in sleep_list and removed from ready_list, and has state set to blocked. 
+
+When timer interrupt ocurrs, handler calls thread_tick. In this function, the sleep_list is traversed
+and checked for threads whose sleep_counter is <=0. These threads are then placed back into ready_list and unblocked.
 
 >> A3: What steps are taken to minimize the amount of time spent in
 >> the timer interrupt handler?
@@ -43,13 +52,19 @@ FirstName LastName <email@domain.example>
 >> A4: How are race conditions avoided when multiple threads call
 >> timer_sleep() simultaneously?
 
+Interrupts are disabled so only one thread has access to sleep_list and ready_list
+
 >> A5: How are race conditions avoided when a timer interrupt occurs
 >> during a call to timer_sleep()?
+
+Inerrupts are disabled, so only the thread has access to sleep_list and ready_list
 
 ---- RATIONALE ----
 
 >> A6: Why did you choose this design?  In what ways is it superior to
 >> another design you considered?
+
+This design was simple and added a minimal amount of new code compared to other designs
 
              PRIORITY SCHEDULING
              ===================
